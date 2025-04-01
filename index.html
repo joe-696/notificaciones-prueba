@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificaciones Push Locales</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      text-align: center;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Notificaciones Push Locales</h1>
+    <button id="enable-notifications">Activar Notificaciones</button>
+    <p>Establecer hora para recibir una notificación:</p>
+    <input type="time" id="notification-time" />
+    <button id="schedule-notification">Programar Notificación</button>
+  </div>
+
+  <script>
+    // Comprobar si el navegador soporta Service Workers
+    if ('Notification' in window && navigator.serviceWorker) {
+      // Solicitar permiso para las notificaciones
+      document.getElementById('enable-notifications').addEventListener('click', () => {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            console.log('Permiso para notificaciones concedido.');
+          } else {
+            console.log('Permiso para notificaciones denegado.');
+          }
+        });
+      });
+
+      // Registrar el Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+          console.log('Service Worker registrado con éxito:', registration);
+        }).catch(function(error) {
+          console.log('Error al registrar el Service Worker:', error);
+        });
+      }
+
+      // Programar la notificación a la hora seleccionada
+      document.getElementById('schedule-notification').addEventListener('click', () => {
+        const notificationTime = document.getElementById('notification-time').value;
+        if (notificationTime) {
+          const [hours, minutes] = notificationTime.split(':').map(Number);
+          const notificationDate = new Date();
+          notificationDate.setHours(hours, minutes, 0, 0); // Hora de la notificación
+
+          // Calcular la diferencia de tiempo
+          const timeDiff = notificationDate.getTime() - Date.now();
+          if (timeDiff > 0) {
+            setTimeout(() => {
+              new Notification('¡Es hora!', {
+                body: 'Es hora de recibir tu notificación.',
+                icon: '/path/to/icon.png'
+              });
+            }, timeDiff);
+            alert('Notificación programada para las ' + notificationDate.toLocaleTimeString());
+          } else {
+            alert('Por favor, elige una hora futura.');
+          }
+        } else {
+          alert('Por favor, selecciona una hora.');
+        }
+      });
+    } else {
+      alert('Tu navegador no soporta notificaciones push.');
+    }
+  </script>
+</body>
+</html>
